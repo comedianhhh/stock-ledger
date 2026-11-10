@@ -1,0 +1,179 @@
+{
+  "ticker": "JPM",
+  "name": "JPMorgan Chase & Co.",
+  "sector": "Financial Services",
+  "asof": "2026-11-10",
+  "data": {
+    "latest_fiscal_year_end": "2025-12-31",
+    "annual_periods": 4,
+    "price_bars": 752
+  },
+  "quality": {
+    "piotroski": {
+      "score": 4,
+      "evaluated": 7,
+      "ratio": 0.5714285714285714,
+      "checks": {
+        "roa_positive": true,
+        "cfo_positive": false,
+        "roa_improving": false,
+        "cfo_exceeds_net_income": false,
+        "leverage_falling": true,
+        "current_ratio_improving": null,
+        "no_dilution": true,
+        "gross_margin_improving": null,
+        "asset_turnover_improving": true
+      }
+    },
+    "gross_profitability": null,
+    "return_on_capital": null,
+    "gross_margin": null,
+    "revenue_growth": 0.07322989394413329
+  },
+  "value": {
+    "basis": "earnings/price (financials)",
+    "market_cap": 923338576006.471,
+    "enterprise_value": null,
+    "earnings_yield": 0.06178448673371597,
+    "fcf_yield": null,
+    "pe": 16.1852926659387
+  },
+  "risk": {
+    "altman_z2": {
+      "value": null,
+      "zone": "n/a",
+      "reason": "not applicable to Financial Services"
+    }
+  },
+  "price": {
+    "price": 342.450012,
+    "ma50": 340.42156316,
+    "ma200": 321.747046985,
+    "price_vs_ma200": 0.06434547017292491,
+    "atr14": 7.9507141428571435,
+    "extension_atr": 0.255127879527948,
+    "momentum_12_1": 0.08442941129024062,
+    "relative_momentum_12_1": -0.0877462264521891,
+    "volatility_1y": 0.23024593612875943,
+    "max_drawdown_1y": -0.15471735519715224
+  },
+  "score": {
+    "total": 58.31,
+    "coverage": 0.725,
+    "dimensions": {
+      "quality": {
+        "score": 54.29,
+        "weight": 0.35,
+        "components": [
+          {
+            "metric": "quality.piotroski.ratio",
+            "value": 0.5714285714285714,
+            "points": 54.29,
+            "weight": 0.5
+          },
+          {
+            "metric": "quality.gross_profitability",
+            "value": null,
+            "points": null,
+            "weight": 0.3
+          },
+          {
+            "metric": "quality.return_on_capital",
+            "value": null,
+            "points": null,
+            "weight": 0.2
+          }
+        ]
+      },
+      "value": {
+        "score": 52.23,
+        "weight": 0.25,
+        "components": [
+          {
+            "metric": "value.earnings_yield",
+            "value": 0.06178448673371597,
+            "points": 52.23,
+            "weight": 0.6
+          },
+          {
+            "metric": "value.fcf_yield",
+            "value": null,
+            "points": null,
+            "weight": 0.4
+          }
+        ]
+      },
+      "momentum": {
+        "score": 45.77,
+        "weight": 0.25,
+        "components": [
+          {
+            "metric": "price.relative_momentum_12_1",
+            "value": -0.0877462264521891,
+            "points": 32.45,
+            "weight": 0.6
+          },
+          {
+            "metric": "price.price_vs_ma200",
+            "value": 0.06434547017292491,
+            "points": 65.74,
+            "weight": 0.4
+          }
+        ]
+      },
+      "risk": {
+        "score": 89.99,
+        "weight": 0.15,
+        "components": [
+          {
+            "metric": "price.volatility_1y",
+            "value": 0.23024593612875943,
+            "points": 92.44,
+            "weight": 0.6
+          },
+          {
+            "metric": "price.max_drawdown_1y",
+            "value": -0.15471735519715224,
+            "points": 86.32,
+            "weight": 0.4
+          }
+        ]
+      }
+    }
+  },
+  "action": {
+    "raw": "HOLD",
+    "final": "HOLD",
+    "guardrails": [
+      {
+        "id": "below_trend",
+        "cap": "HOLD",
+        "triggered": false,
+        "reason": "price is below its 200-day moving average"
+      },
+      {
+        "id": "overextended",
+        "cap": "HOLD",
+        "triggered": false,
+        "reason": "price is more than 4.0 ATRs above its 50-day average"
+      },
+      {
+        "id": "distress",
+        "cap": "AVOID",
+        "triggered": false,
+        "reason": "Altman Z'' in distress zone AND weak Piotroski score"
+      },
+      {
+        "id": "low_coverage",
+        "cap": "HOLD",
+        "triggered": false,
+        "reason": "scoring input coverage 72% is below 60%"
+      }
+    ]
+  },
+  "rules": {
+    "version": "v1",
+    "sha256": "bd54d3a36fa5"
+  },
+  "generator": "stockledger 0.1.0"
+}

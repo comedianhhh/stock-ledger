@@ -1,0 +1,10 @@
+{
+  "$schema": "https://anthropic.com/claude-code/plugin.schema.json",
+  "name": "stock-ledger",
+  "version": "0.1.0",
+  "description": "Rules-based US stock analysis: deterministic factor scores, LLM-written narrative with citation-by-construction, and a self-grading track record of every call.",
+  "author": { "name": "Alan" },
+  "license": "MIT",
+  "keywords": ["stocks", "finance", "factor-investing", "yfinance"],
+  "skills": ["./skills/stock-analysis"]
+}

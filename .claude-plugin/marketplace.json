@@ -1,0 +1,11 @@
+{
+  "name": "stock-ledger",
+  "owner": { "name": "Alan" },
+  "plugins": [
+    {
+      "name": "stock-ledger",
+      "source": "./",
+      "description": "Rules-based US stock analysis with a self-grading track record."
+    }
+  ]
+}

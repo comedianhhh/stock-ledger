@@ -1,0 +1,22 @@
+# Weekly: regrade every recorded call against SPY and commit the updated track record.
+name: settle
+on:
+  schedule:
+    - cron: "0 22 * * 5"   # Fridays after US close
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  settle:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+      - run: uv sync
+      - run: uv run stockledger settle
+      - run: |
+          git config user.name "stockledger-bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add ledger/
+          git diff --cached --quiet || git commit -m "settle: update track record"
+          git push

@@ -1,0 +1,42 @@
+# Scoring rules. Every metrics.json records this file's version + sha256,
+# and every ledger call is tied to it. Change a number -> bump the version.
+version: v1
+
+# Each component maps a metric to 0-100 points by linear interpolation
+# between curve points (clamped at the ends). Missing metrics are dropped and
+# the remaining weights are renormalised; `coverage` reports how much was used.
+dimensions:
+  quality:
+    weight: 0.35
+    components:
+      - {metric: quality.piotroski.ratio,     weight: 0.5, curve: [[0.3, 0], [0.8, 100]]}
+      - {metric: quality.gross_profitability, weight: 0.3, curve: [[0.10, 0], [0.40, 100]]}
+      - {metric: quality.return_on_capital,   weight: 0.2, curve: [[0.05, 0], [0.50, 100]]}
+  value:
+    weight: 0.25
+    components:
+      - {metric: value.earnings_yield, weight: 0.6, curve: [[0.02, 0], [0.10, 100]]}
+      - {metric: value.fcf_yield,      weight: 0.4, curve: [[0.01, 0], [0.08, 100]]}
+  momentum:
+    weight: 0.25
+    components:
+      - {metric: price.relative_momentum_12_1, weight: 0.6, curve: [[-0.25, 0], [0.25, 100]]}
+      - {metric: price.price_vs_ma200,         weight: 0.4, curve: [[-0.10, 0], [0.15, 100]]}
+  risk:
+    weight: 0.15
+    components:
+      - {metric: price.volatility_1y,   weight: 0.6, curve: [[0.20, 100], [0.60, 0]]}
+      - {metric: price.max_drawdown_1y, weight: 0.4, curve: [[-0.50, 0], [-0.10, 100]]}
+
+# score -> action. Direction is relative to SPY over the settlement horizons.
+actions:
+  BUY: 65    # >= 65: expect to outperform
+  HOLD: 40   # 40-64: no edge claimed
+  # < 40: AVOID, expect to underperform
+
+# Guardrails can only DOWNGRADE (cap) an action, never upgrade it.
+guardrails:
+  below_trend:        {cap: HOLD,  max_price_vs_ma200: 0.0}      # don't buy a falling knife
+  overextended:       {cap: HOLD,  max_extension_atr: 4.0}       # don't chase
+  distress:           {cap: AVOID, zone: distress, max_piotroski: 3}
+  low_coverage:       {cap: HOLD,  min_coverage: 0.6}            # not enough data to claim an edge
