@@ -5,6 +5,7 @@
   stockledger render report.template.md --metrics ... [-o report.md]
   stockledger record out/AAPL_2026-11-10.metrics.json
   stockledger settle
+  stockledger macro [--snapshot out/macro_2026-11-19.snapshot.json] [--record]
 """
 
 from __future__ import annotations
@@ -15,7 +16,7 @@ import sys
 from datetime import date
 from pathlib import Path
 
-from . import ledger, render, scoring, snapshot
+from . import ledger, macro, render, scoring, snapshot
 
 
 def _write_json(path: Path, obj) -> None:
@@ -91,6 +92,26 @@ def cmd_settle(args) -> int:
     return 0
 
 
+def cmd_macro(args) -> int:
+    spec = macro.load_markets(Path(args.markets) if args.markets else None)
+    out = Path(args.out)
+    if args.snapshot:
+        snap = macro.load(Path(args.snapshot))
+    else:
+        snap = macro.fetch(spec)
+        macro.save(snap, out / f"macro_{snap['asof']}.snapshot.json")
+    m = macro.build(snap, spec)
+    path = out / f"macro_{m['asof']}.json"
+    _write_json(path, m)
+    for line in macro.summary_lines(m):
+        print(line)
+    print(f"macro: {path}")
+    if args.record:
+        entry, new = macro.record(m, Path(args.ledger))
+        print(("recorded " if new else "already recorded ") + entry["id"])
+    return 0 if m["coverage"] > 0 else 1
+
+
 def build_parser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser(prog="stockledger", description=__doc__,
                                 formatter_class=argparse.RawDescriptionHelpFormatter)
@@ -121,6 +142,14 @@ def build_parser() -> argparse.ArgumentParser:
     s = sub.add_parser("settle", help="score past calls vs SPY, regenerate TRACK_RECORD.md")
     s.add_argument("--ledger", default="ledger")
     s.set_defaults(func=cmd_settle)
+
+    mc = sub.add_parser("macro", help="Polymarket odds for a fixed macro market set -> macro.json")
+    mc.add_argument("--snapshot", help="use a saved macro snapshot instead of fetching")
+    mc.add_argument("--markets", help="alternative market-set YAML")
+    mc.add_argument("--out", default="out")
+    mc.add_argument("--record", action="store_true", help="append the odds to ledger/macro.jsonl")
+    mc.add_argument("--ledger", default="ledger")
+    mc.set_defaults(func=cmd_macro)
     return p
 
 

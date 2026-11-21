@@ -66,12 +66,35 @@ The distress guardrail requires **both** a distress-zone Altman Z'' **and** a we
 
 The Z'' variant was chosen over the 1968 Z for all other companies because it drops the industry-dependent sales/assets term.
 
+### Foreign filers and ADRs
+
+yfinance returns a foreign filer's statements in its reporting currency. TSM reports in TWD, but its quote is a USD ADS, and one ADS is 5 ordinary shares. Multiplying TWD earnings against a USD price used to inflate TSM's earnings yield by roughly 6x: about 33x from the currency, offset by the 5x ADS share count. That produced a fake P/E of 5.5x and a perfect value score.
+
+The fix stays inside the existing boundaries:
+
+- **Snapshot.** It records `financial_currency`, a daily FX series (`fx`, quote currency per reporting unit, with an inverse-pair fallback), and the ADS ratio `shares_per_price_unit`. The ratio is ordinary shares divided by Yahoo's market cap over price, measured once at fetch time.
+- **`currency_bridge`.** It takes the last FX close on or before the as-of date, so back-dated runs stay point-in-time. `trim_to_asof` trims `fx` like any other price series.
+- **Value factor.** Statement amounts are converted at that rate, and the point-in-time ordinary share count is divided by the ADS ratio. Quality and risk ratios are left alone, because they are currency-invariant.
+- **Missing inputs.** If the rate or the ratio is missing, every valuation metric is `None` with a recorded reason. Coverage drops; nothing is guessed.
+- **Older snapshots.** Snapshots without `financial_currency` (all fixtures and goldens) behave exactly as before.
+
+Two simplifications are worth knowing. Flows such as EBIT and FCF are converted at the as-of spot rate rather than the fiscal-year average. The ADS ratio is also assumed constant over the snapshot's life. Neither changes the order of magnitude, which was the bug.
+
 ## 8. Settlement
 
 `calls.jsonl` is append-only and idempotent on `ticker-asof-rulesversion`. `settle` regenerates all results from scratch, so they're always reproducible.
 
 - Entry and exit prices both come from the freshly fetched, split- and dividend-adjusted series, never the recorded price. Total-return treatment is therefore consistent on both legs.
 - A **hit** means a BUY beat SPY, or an AVOID lagged SPY. HOLD claims no edge and is excluded from the hit rate.
+
+## 9. Macro odds are context, not a factor
+
+`stockledger macro` adds a second I/O boundary (`macro.fetch`, Polymarket's public gamma API) with the same contract as the first. The fetch writes a trimmed raw snapshot, and `macro.build` is a pure function of that snapshot and the market set.
+
+- **The market set is data.** It lives in `rules/macro_m1.yaml` with a version and a sha256, like the scoring rules. Dated events expire (a December FOMC resolves), so replacing a slug means bumping the version. A slug that is missing, closed or fails to fetch is reported per market and lowers `coverage`. It never aborts the run.
+- **No arithmetic the data doesn't support.** `sum_p` and the modal outcome exist only when every live sub-market is `negRisk`, meaning the outcomes are mutually exclusive. A threshold ladder ("S&P touches 7,000 / 8,000") overlaps, so it gets neither. Overrounds such as `sum_p` of 1.05 are reported as-is rather than normalised away, because they show how loosely the event is priced.
+- **Thin markets are labelled, not dropped.** Events below `min_volume_usd` carry `thin: true`. A narrative can still mention them, but only as direction.
+- **Deliberately not a scoring input.** Folding odds into the factor score would make a stock's rating depend on which events happen to be listed that week. Instead, `--record` appends the day's odds to `ledger/macro.jsonl` (idempotent on date and set version), which lets the crowd be graded on its own later.
 
 ## Known limitations and next steps
 

@@ -42,7 +42,8 @@ def compute_metrics(snap: dict) -> dict:
             "price_bars": len(snap["prices"]["close"]),
         },
         "quality": quality.compute(a),
-        "value": value.compute(a, p["price"], info.get("sector")),
+        "value": value.compute(a, p["price"], info.get("sector"),
+                               snapshot_mod.currency_bridge(snap)),
         "risk": risk.compute(a, info.get("sector")),
         "price": p,
     }

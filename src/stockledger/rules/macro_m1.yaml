@@ -1,0 +1,49 @@
+# Macro snapshot market set, version m1.
+#
+# Each entry is one Polymarket event, looked up by its slug on the public
+# gamma API. Dated events (a December FOMC, a November CPI print) expire:
+# when one resolves, replace its slug here and bump `version`, the same way a
+# change to v1.yaml bumps the scoring rules. A slug that is missing or closed
+# is reported as such in macro.json; it never fails the run.
+#
+# `id` is the key under `markets` in macro.json, so report templates can cite
+# e.g. {{ markets.recession_2027.p | pct }}.
+
+version: m1
+
+# Markets that have traded less than this (USD, lifetime) are flagged `thin`:
+# a few orders can move their price, so read them as direction, not as odds.
+min_volume_usd: 250000
+
+markets:
+  - id: fed_dec
+    slug: fed-decision-in-december-20260729232808632
+    label: Fed decision at the December 2026 FOMC
+
+  - id: fed_rate_eoy
+    slug: what-will-the-fed-rate-be-at-the-end-of-2026
+    label: Fed funds upper bound at the end of 2026
+
+  - id: recession_2026
+    slug: us-recession-by-end-of-2026
+    label: US recession by the end of 2026
+
+  - id: recession_2027
+    slug: us-recession-by-end-of-2027-20260807185409760
+    label: US recession by the end of 2027
+
+  - id: cpi_yoy_nov
+    slug: november-inflation-us-annual
+    label: US headline CPI, year over year, November 2026 print
+
+  - id: core_cpi_yoy_nov
+    slug: core-cpi-yoy-november-2026
+    label: US core CPI, year over year, November 2026 print
+
+  - id: unemployment_nov
+    slug: november-unemployment-rate-2026
+    label: US unemployment rate, November 2026 print
+
+  - id: spx_hit_dec
+    slug: spx-hit-dec-2026
+    label: S&P 500 levels touched by the end of December 2026

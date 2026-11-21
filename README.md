@@ -39,7 +39,28 @@ stockledger check  report.template.md --metrics out/AAPL_<date>.metrics.json
 stockledger render report.template.md --metrics out/AAPL_<date>.metrics.json -o report.md
 stockledger record out/AAPL_<date>.metrics.json
 stockledger settle                            # regrade all calls -> ledger/TRACK_RECORD.md
+stockledger macro --record                    # Polymarket macro odds -> out/macro_<date>.json
 ```
+
+## Macro context from prediction markets
+
+`stockledger macro` reads a fixed, versioned set of Polymarket events (Fed decision, year-end policy rate, recession, CPI, unemployment, S&P 500 levels) from the public gamma API. It needs no key. The set is defined in [`rules/macro_m1.yaml`](src/stockledger/rules/macro_m1.yaml).
+
+```
+$ stockledger macro
+macro asof 2026-11-19 (markets m1, coverage 100%)
+  fed_dec            most likely: 25 bps increase 91.5%
+  recession_2027     yes 30.5% [thin]
+  cpi_yoy_nov        most likely: 3.7% 43.5% [thin]
+  spx_hit_dec        13 overlapping thresholds
+  ...
+```
+
+- It follows the same split as stock analysis. The fetch saves a raw snapshot, and `build` is a pure function of it, so `--snapshot` replays a day exactly. `macro.json` works with `check` and `render`, so a report can cite `{{ markets.fed_dec.mode_p | pct }}`.
+- Odds are context, not inputs. They never change a stock's score or rating.
+- `thin` marks events below the volume floor. Read those as direction only.
+- `sum_p` and the most-likely outcome are computed only for mutually exclusive outcomes. Threshold ladders overlap and are never summed.
+- `--record` appends the day's odds to `ledger/macro.jsonl`, so the crowd's calls can be graded later just like the factor calls.
 
 ## What gets scored (rules v1)
 
@@ -87,7 +108,9 @@ src/stockledger/
   scoring.py       metrics -> score -> action -> guardrails
   render.py        placeholder check/render (citation by construction)
   ledger.py        append-only calls, settlement vs SPY, TRACK_RECORD.md
+  macro.py         Polymarket snapshot -> macro.json (second I/O boundary, pure build)
   rules/v1.yaml    every weight and threshold
+  rules/macro_m1.yaml  the versioned prediction-market set
 skills/stock-analysis/   the Claude Code skill + report template
 tests/                   unit tests, golden snapshot tests, template eval
 ```

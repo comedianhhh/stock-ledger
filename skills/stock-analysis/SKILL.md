@@ -74,6 +74,14 @@ This appends the rating to `ledger/calls.jsonl` and is idempotent. Calls with an
 
 `stockledger settle` grades every past call against SPY at 63, 126 and 252 trading days and regenerates `ledger/TRACK_RECORD.md`. Run it when the user asks how past calls did.
 
+## Macro context
+
+When the user asks about the market as a whole, the Fed, inflation or recession risk, run `stockledger macro`. It writes `out/macro_<DATE>.json` with Polymarket odds for a fixed market set. Cite the odds the same way as stock metrics: write a template with placeholders such as `{{ markets.fed_dec.mode_p | pct }}`, then `check` and `render` it with `--metrics out/macro_<DATE>.json`.
+
+- Call markets with `"thin": true` direction only.
+- Never add up outcomes when `exclusive` is false.
+- Odds are context. They never change a stock's rating.
+
 ## Comparisons
 
 Run `analyze` for each ticker and compare dimension scores side by side, using one template per ticker or a combined table of placeholders.
